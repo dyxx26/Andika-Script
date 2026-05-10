@@ -1,4 +1,4 @@
--- [[ TUAN ANDIKA HUB - V4.0 (AURA GRAB EDITION) ]] --
+-- [[ TUAN ANDIKA HUB - V5.0 (SERVER TORNADO EDITION) ]] --
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -6,16 +6,14 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local flying = false
-local carrying = false
-local targetPlayer = nil
-local carryConnection = nil
-local bg, bv
+local flinging = false
+local bg, bv, flingVelocity
 
 -- ========================================== --
 --   GUI CREATION (HARDCODED POSITIONS)       --
 -- ========================================== --
 local AndikaHubGui = Instance.new("ScreenGui")
-AndikaHubGui.Name = "AndikaHub_V4"
+AndikaHubGui.Name = "AndikaHub_V5"
 AndikaHubGui.ResetOnSpawn = false
 
 local success, result = pcall(function() return gethui() end)
@@ -70,22 +68,22 @@ FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 FlyButton.Font = Enum.Font.Code
 FlyButton.TextSize = 16
 
-local CarryButton = Instance.new("TextButton", MainFrame)
-CarryButton.Size = UDim2.new(0.9, 0, 0, 45)
-CarryButton.Position = UDim2.new(0.05, 0, 0, 105)
-CarryButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-CarryButton.BorderSizePixel = 1
-CarryButton.BorderColor3 = Color3.fromRGB(100, 0, 0)
-CarryButton.Text = "😈 Aura Carry (C)"
-CarryButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CarryButton.Font = Enum.Font.Code
-CarryButton.TextSize = 16
+local FlingButton = Instance.new("TextButton", MainFrame)
+FlingButton.Size = UDim2.new(0.9, 0, 0, 45)
+FlingButton.Position = UDim2.new(0.05, 0, 0, 105)
+FlingButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+FlingButton.BorderSizePixel = 1
+FlingButton.BorderColor3 = Color3.fromRGB(100, 0, 0)
+FlingButton.Text = "🌪️ Tornado Strike (C)"
+FlingButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlingButton.Font = Enum.Font.Code
+FlingButton.TextSize = 16
 
 local StatusLabel = Instance.new("TextLabel", MainFrame)
 StatusLabel.Size = UDim2.new(0.9, 0, 0, 20)
 StatusLabel.Position = UDim2.new(0.05, 0, 1, -30)
 StatusLabel.BackgroundTransparency = 1
-StatusLabel.Text = "Ready for chaos."
+StatusLabel.Text = "Server Chaos Ready."
 StatusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 StatusLabel.Font = Enum.Font.Code
 StatusLabel.TextSize = 14
@@ -97,56 +95,27 @@ local function updateStatus(pesan)
     StatusLabel.Text = pesan
 end
 
--- Fungsi licik mencari pemain paling dekat
-local function getClosestPlayer(radius)
-    local closestPlayer = nil
-    local shortestDistance = radius
-    local myPos = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character.HumanoidRootPart.Position
-
-    if not myPos then return nil end
-
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            local pos = p.Character.HumanoidRootPart.Position
-            local distance = (myPos - pos).Magnitude
-            if distance < shortestDistance then
-                shortestDistance = distance
-                closestPlayer = p
-            end
-        end
-    end
-    return closestPlayer
-end
-
-local function toggleCarry()
-    if carrying then
-        carrying = false
-        targetPlayer = nil
-        if carryConnection then carryConnection:Disconnect() end
-        updateStatus("Korban dilepaskan.")
-        CarryButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+local function toggleFling()
+    flinging = not flinging
+    local char = LocalPlayer.Character
+    if flinging and char and char:FindFirstChild("HumanoidRootPart") then
+        local hrp = char.HumanoidRootPart
+        
+        -- Memutar tubuh Tuan dengan kecepatan sangat tidak wajar
+        flingVelocity = Instance.new("BodyAngularVelocity")
+        flingVelocity.Name = "AliceTornado"
+        flingVelocity.AngularVelocity = Vector3.new(0, 99999, 0)
+        flingVelocity.MaxTorque = Vector3.new(0, math.huge, 0)
+        flingVelocity.Parent = hrp
+        
+        updateStatus("Tornado AKTIF! Tabrak mereka!")
+        FlingButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
     else
-        -- Mencari target terdekat dalam jarak 25 meter/studs
-        targetPlayer = getClosestPlayer(25)
-
-        if targetPlayer then
-            carrying = true
-            updateStatus("Menculik: " .. targetPlayer.Name)
-            CarryButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-
-            carryConnection = RunService.RenderStepped:Connect(function()
-                if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                    targetPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
-                    targetPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 50, 0)
-                else
-                    carrying = false
-                    carryConnection:Disconnect()
-                    CarryButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-                end
-            end)
-        else
-            updateStatus("Terlalu jauh! Dekati korban Tuan.")
+        if char and char:FindFirstChild("HumanoidRootPart") and char.HumanoidRootPart:FindFirstChild("AliceTornado") then
+            char.HumanoidRootPart.AliceTornado:Destroy()
         end
+        updateStatus("Tornado NONAKTIF.")
+        FlingButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     end
 end
 
@@ -190,16 +159,16 @@ local function toggleFly()
 end
 
 FlyButton.MouseButton1Click:Connect(toggleFly)
-CarryButton.MouseButton1Click:Connect(toggleCarry)
+FlingButton.MouseButton1Click:Connect(toggleFling)
 
 ExitButton.MouseButton1Click:Connect(function()
     if flying then toggleFly() end
-    if carrying then toggleCarry() end
+    if flinging then toggleFling() end
     AndikaHubGui:Destroy()
 end)
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.F then toggleFly()
-    elseif input.KeyCode == Enum.KeyCode.C then toggleCarry() end
+    elseif input.KeyCode == Enum.KeyCode.C then toggleFling() end
 end)
