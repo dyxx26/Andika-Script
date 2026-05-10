@@ -1,8 +1,7 @@
--- [[ TUAN ANDIKA HUB - V3.0 (ANTI-BLANK EDITION) ]] --
+-- [[ TUAN ANDIKA HUB - V4.0 (AURA GRAB EDITION) ]] --
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -16,10 +15,9 @@ local bg, bv
 --   GUI CREATION (HARDCODED POSITIONS)       --
 -- ========================================== --
 local AndikaHubGui = Instance.new("ScreenGui")
-AndikaHubGui.Name = "AndikaHub_V3"
+AndikaHubGui.Name = "AndikaHub_V4"
 AndikaHubGui.ResetOnSpawn = false
 
--- Bypass proteksi
 local success, result = pcall(function() return gethui() end)
 if success and result then
     AndikaHubGui.Parent = result
@@ -27,23 +25,20 @@ else
     AndikaHubGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 end
 
--- Main Frame (Kotak Utama)
 local MainFrame = Instance.new("Frame", AndikaHubGui)
 MainFrame.Size = UDim2.new(0, 250, 0, 250)
 MainFrame.Position = UDim2.new(0.5, -125, 0.5, -125)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.BorderSizePixel = 2
-MainFrame.BorderColor3 = Color3.fromRGB(200, 0, 0) -- Garis pinggir merah
+MainFrame.BorderColor3 = Color3.fromRGB(200, 0, 0)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
--- Top Bar (Header)
 local TopBar = Instance.new("Frame", MainFrame)
 TopBar.Size = UDim2.new(1, 0, 0, 30)
 TopBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 TopBar.BorderSizePixel = 0
 
--- Logo / Teks
 local TitleLabel = Instance.new("TextLabel", TopBar)
 TitleLabel.Size = UDim2.new(0, 150, 1, 0)
 TitleLabel.Position = UDim2.new(0, 10, 0, 0)
@@ -53,9 +48,7 @@ TitleLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
 TitleLabel.Font = Enum.Font.Code
 TitleLabel.TextSize = 18
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-TitleLabel.ZIndex = 10
 
--- Tombol Exit
 local ExitButton = Instance.new("TextButton", TopBar)
 ExitButton.Size = UDim2.new(0, 30, 0, 30)
 ExitButton.Position = UDim2.new(1, -30, 0, 0)
@@ -65,12 +58,10 @@ ExitButton.Text = "X"
 ExitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ExitButton.Font = Enum.Font.Code
 ExitButton.TextSize = 18
-ExitButton.ZIndex = 10
 
--- Tombol Fly (Posisi Paksa)
 local FlyButton = Instance.new("TextButton", MainFrame)
 FlyButton.Size = UDim2.new(0.9, 0, 0, 45)
-FlyButton.Position = UDim2.new(0.05, 0, 0, 50) -- Jarak dari atas
+FlyButton.Position = UDim2.new(0.05, 0, 0, 50)
 FlyButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 FlyButton.BorderSizePixel = 1
 FlyButton.BorderColor3 = Color3.fromRGB(100, 0, 0)
@@ -78,22 +69,18 @@ FlyButton.Text = "🕊️ Toggle Fly (F)"
 FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 FlyButton.Font = Enum.Font.Code
 FlyButton.TextSize = 16
-FlyButton.ZIndex = 10
 
--- Tombol Carry (Posisi Paksa)
 local CarryButton = Instance.new("TextButton", MainFrame)
 CarryButton.Size = UDim2.new(0.9, 0, 0, 45)
-CarryButton.Position = UDim2.new(0.05, 0, 0, 105) -- Jarak dari atas
+CarryButton.Position = UDim2.new(0.05, 0, 0, 105)
 CarryButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 CarryButton.BorderSizePixel = 1
 CarryButton.BorderColor3 = Color3.fromRGB(100, 0, 0)
-CarryButton.Text = "😈 Toggle Carry (C)"
+CarryButton.Text = "😈 Aura Carry (C)"
 CarryButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CarryButton.Font = Enum.Font.Code
 CarryButton.TextSize = 16
-CarryButton.ZIndex = 10
 
--- Label Status
 local StatusLabel = Instance.new("TextLabel", MainFrame)
 StatusLabel.Size = UDim2.new(0.9, 0, 0, 20)
 StatusLabel.Position = UDim2.new(0.05, 0, 1, -30)
@@ -102,13 +89,33 @@ StatusLabel.Text = "Ready for chaos."
 StatusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 StatusLabel.Font = Enum.Font.Code
 StatusLabel.TextSize = 14
-StatusLabel.ZIndex = 10
 
 -- ========================================== --
 --             LOGIC FUNCTIONS                --
 -- ========================================== --
 local function updateStatus(pesan)
     StatusLabel.Text = pesan
+end
+
+-- Fungsi licik mencari pemain paling dekat
+local function getClosestPlayer(radius)
+    local closestPlayer = nil
+    local shortestDistance = radius
+    local myPos = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character.HumanoidRootPart.Position
+
+    if not myPos then return nil end
+
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local pos = p.Character.HumanoidRootPart.Position
+            local distance = (myPos - pos).Magnitude
+            if distance < shortestDistance then
+                shortestDistance = distance
+                closestPlayer = p
+            end
+        end
+    end
+    return closestPlayer
 end
 
 local function toggleCarry()
@@ -119,12 +126,10 @@ local function toggleCarry()
         updateStatus("Korban dilepaskan.")
         CarryButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     else
-        if Mouse.Target and Mouse.Target.Parent:FindFirstChild("Humanoid") then
-            local character = Mouse.Target.Parent
-            targetPlayer = Players:GetPlayerFromCharacter(character)
-        end
+        -- Mencari target terdekat dalam jarak 25 meter/studs
+        targetPlayer = getClosestPlayer(25)
 
-        if targetPlayer and targetPlayer ~= LocalPlayer then
+        if targetPlayer then
             carrying = true
             updateStatus("Menculik: " .. targetPlayer.Name)
             CarryButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
@@ -140,7 +145,7 @@ local function toggleCarry()
                 end
             end)
         else
-            updateStatus("Arahkan kursor ke target!")
+            updateStatus("Terlalu jauh! Dekati korban Tuan.")
         end
     end
 end
